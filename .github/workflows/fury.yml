@@ -1,0 +1,47 @@
+name: "[Linux] Build EDuke32 (for Ion Fury)"
+
+on:
+  workflow_dispatch:
+
+env:
+  EDUKE32_VERSION: '20231022-10514-03a39f4d6'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: ⬇️ Fetch the source code
+        run: |
+          wget -O 'eduke32_src.tar.xz' "https://dukeworld.duke4.net/eduke32/synthesis/${EDUKE32_VERSION}/eduke32_src_${EDUKE32_VERSION}.tar.xz"
+          tar -xvf 'eduke32_src.tar.xz' --strip-components=1; rm -fv 'eduke32_src.tar.xz'
+
+      - name: ✏️ Add Ubuntu PPAs for some packages
+        run: |
+          sudo add-apt-repository -y "deb http://archive.ubuntu.com/ubuntu $(lsb_release -sc) main universe restricted multiverse"
+          sudo apt update
+
+      - name: 🔧 Install dependencies
+        run: |
+          sudo apt install -y build-essential nasm libgl1-mesa-dev libsdl2-dev flac libflac-dev libvpx-dev libgtk2.0-dev freepats
+
+      - name: 🏗️ Build
+        run: |
+          make -j$(nproc --all) CLANG=1 FURY=1 SDL_STATIC=0 USE_LIBVPX=1 STARTUP_WINDOW=0 HAVE_GTK2=0
+          
+      - name: 📦️ Pack
+        run: |
+          pip3 install -U staticx
+          for binary in fury mapster32; do
+            python3 -m staticx --strip "$binary" "${binary}_static"
+            rm "$binary" && mv "${binary}_static" "$binary"
+            done
+
+      - name: 🚚 Ship
+        uses: actions/upload-artifact@v3
+        with:
+          name: EDuke32_Linux-Fury
+          path: |
+            fury
+            mapster32
