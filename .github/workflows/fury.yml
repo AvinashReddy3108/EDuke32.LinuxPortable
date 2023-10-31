@@ -1,47 +1,97 @@
-name: "[Linux] Build EDuke32 (for Ion Fury)"
+name: "Ion Fury"
 
 on:
   workflow_dispatch:
-
-env:
-  EDUKE32_VERSION: '20231022-10514-03a39f4d6'
+  schedule:
+    - cron: "0 0 * * *"
 
 jobs:
+
   build:
+
     runs-on: ubuntu-latest
 
     steps:
 
-      - name: ⬇️ Fetch the source code
+      - name: 🛒 Checkout repository
+        id: checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 🔍 Determine latest EDuke32 "Synthesis" version
+        id: versions
         run: |
-          wget -O 'eduke32_src.tar.xz' "https://dukeworld.duke4.net/eduke32/synthesis/${EDUKE32_VERSION}/eduke32_src_${EDUKE32_VERSION}.tar.xz"
-          tar -xvf 'eduke32_src.tar.xz' --strip-components=1; rm -fv 'eduke32_src.tar.xz'
+          EDUKE32_VERSION="$(curl -sL https://dukeworld.com/eduke32/synthesis/latest | grep -o '[^"]*.tar.xz' | head -n 1)"
+          SYNTHESIS_VERSION=${EDUKE32_VERSION#"eduke32_src_"}; SYNTHESIS_VERSION=${SYNTHESIS_VERSION%".tar.xz"}
+          echo "synthesis=$SYNTHESIS_VERSION" >> $GITHUB_OUTPUT
+        shell: bash
+
+      - name: ❓ Check if we already built this version
+        id: check_tag
+        run: |
+          if git rev-parse --verify --quiet "refs/tags/fury-${{ steps.versions.outputs.synthesis }}"; then
+            echo "Tag already exists, we can exit early!"; echo "tag_exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "Tag does not exist, let's get cracking!"; echo "tag_exists=false" >> $GITHUB_OUTPUT
+          fi
+        shell: bash
+
+      - name: 🗃️ Fetch the source code
+        if: steps.check_tag.outputs.tag_exists == 'false'
+        run: |
+          wget -O 'eduke32_src.tar.xz' "https://dukeworld.duke4.net/eduke32/synthesis/${{ steps.versions.outputs.synthesis }}/eduke32_src_${{ steps.versions.outputs.synthesis }}.tar.xz"
+          tar -xf 'eduke32_src.tar.xz' --strip-components=1 && rm 'eduke32_src.tar.xz'
+        shell: bash
 
       - name: ✏️ Add Ubuntu PPAs for some packages
+        if: steps.check_tag.outputs.tag_exists == 'false'
         run: |
           sudo add-apt-repository -y "deb http://archive.ubuntu.com/ubuntu $(lsb_release -sc) main universe restricted multiverse"
           sudo apt update
+        shell: bash
 
       - name: 🔧 Install dependencies
+        if: steps.check_tag.outputs.tag_exists == 'false'
         run: |
-          sudo apt install -y build-essential nasm libgl1-mesa-dev libsdl2-dev flac libflac-dev libvpx-dev libgtk2.0-dev freepats
+          sudo apt install -y build-essential \
+                              nasm \
+                              libgl1-mesa-dev \
+                              libsdl2-dev \
+                              flac libflac-dev \
+                              libvpx-dev \
+                              libgtk2.0-dev \
+                              freepats
+        shell: bash
 
       - name: 🏗️ Build
+        if: steps.check_tag.outputs.tag_exists == 'false'
         run: |
-          make -j$(nproc --all) CLANG=1 FURY=1 SDL_STATIC=0 USE_LIBVPX=1 STARTUP_WINDOW=0 HAVE_GTK2=0
+          make -j$(nproc --all) \
+              FURY=1 SDL_STATIC=0 USE_LIBVPX=1 \
+              STARTUP_WINDOW=0 HAVE_GTK2=0
+        shell: bash
           
       - name: 📦️ Pack
+        if: steps.check_tag.outputs.tag_exists == 'false'
         run: |
           pip3 install -U staticx
           for binary in fury mapster32; do
             python3 -m staticx --strip "$binary" "${binary}_static"
             rm "$binary" && mv "${binary}_static" "$binary"
             done
+          7z a -t7z -m0=lzma -mx=9 -mfb=64 -md=32m -ms=on "Fury.LinuxPortable_${{ steps.versions.outputs.synthesis }}.7z" fury mapster32
+        shell: bash
 
       - name: 🚚 Ship
-        uses: actions/upload-artifact@v3
+        if: steps.check_tag.outputs.tag_exists == 'false'
+        uses: softprops/action-gh-release@v1
         with:
-          name: EDuke32_Linux-Fury
-          path: |
-            fury
-            mapster32
+          tag_name: fury-${{ steps.versions.outputs.synthesis }}
+          name: "Ion Fury | ${{ steps.versions.outputs.synthesis }}"
+          body: |
+            Read the changelog: [HERE](https://dukeworld.com/eduke32/synthesis/${{ steps.versions.outputs.synthesis }}/ChangeLog.txt)
+
+            _Do note that these build have the "startup screen" stripped out (flags: `STARTUP_WINDOW=0`, `HAVE_GTK2=0`) in favor of using shell scripts (or maybe a third party launcher in the future?) to launch the games._
+            _You will need to use the CLI for launching your games (see `./fury --help`)._
+          files: Fury.LinuxPortable_${{ steps.versions.outputs.synthesis }}.7z
