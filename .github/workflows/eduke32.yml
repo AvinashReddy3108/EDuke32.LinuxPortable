@@ -91,8 +91,8 @@ jobs:
           body: |
             ![eduke32](https://github.com/AvinashReddy3108/EDuke32.LinuxPortable/assets/27774996/9123536a-cfd2-40f5-97f8-cdbbfb15407a)
 
-            Read the changelog: [HERE](https://dukeworld.com/eduke32/synthesis/${{ steps.versions.outputs.synthesis }}/ChangeLog.txt)
+            Read the changelog: https://dukeworld.com/eduke32/synthesis/${{ steps.versions.outputs.synthesis }}/ChangeLog.txt
 
-            _Do note that these build have the "startup screen" stripped out (flags: `STARTUP_WINDOW=0`, `HAVE_GTK2=0`) in favor of using shell scripts (or maybe a third party launcher in the future?) to launch the games._
-            _You will need to use the CLI for launching your games (see `./eduke32 --help`)._
+            # Notes
+            - The "startup screen"/GUI has been stripped out (flags: `STARTUP_WINDOW=0`, `HAVE_GTK2=0`) in favor of using shell scripts (_or maybe a third party launcher in the future?_) to launch the games. You will need to use the CLI for launching your games (see `./fury --help`).
           files: EDuke32.LinuxPortable_${{ steps.versions.outputs.synthesis }}.7z
