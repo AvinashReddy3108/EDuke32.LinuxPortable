@@ -89,6 +89,8 @@ jobs:
           tag_name: eduke32-${{ steps.versions.outputs.synthesis }}
           name: "EDuke32 | ${{ steps.versions.outputs.synthesis }}"
           body: |
+            ![eduke32](https://github.com/AvinashReddy3108/EDuke32.LinuxPortable/assets/27774996/9123536a-cfd2-40f5-97f8-cdbbfb15407a)
+
             Read the changelog: [HERE](https://dukeworld.com/eduke32/synthesis/${{ steps.versions.outputs.synthesis }}/ChangeLog.txt)
 
             _Do note that these build have the "startup screen" stripped out (flags: `STARTUP_WINDOW=0`, `HAVE_GTK2=0`) in favor of using shell scripts (or maybe a third party launcher in the future?) to launch the games._

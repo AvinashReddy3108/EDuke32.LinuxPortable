@@ -90,6 +90,8 @@ jobs:
           tag_name: fury-${{ steps.versions.outputs.synthesis }}
           name: "Ion Fury | ${{ steps.versions.outputs.synthesis }}"
           body: |
+            ![fury](https://github.com/AvinashReddy3108/EDuke32.LinuxPortable/assets/27774996/f61bf3bc-5629-4b2a-90cb-ab192bfb410d)
+
             Read the changelog: [HERE](https://dukeworld.com/eduke32/synthesis/${{ steps.versions.outputs.synthesis }}/ChangeLog.txt)
 
             _Do note that these build have the "startup screen" stripped out (flags: `STARTUP_WINDOW=0`, `HAVE_GTK2=0`) in favor of using shell scripts (or maybe a third party launcher in the future?) to launch the games._
