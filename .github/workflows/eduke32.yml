@@ -30,7 +30,7 @@ jobs:
       - name: ❓ Check if we already built this version
         id: check_tag
         run: |
-          if git rev-parse --verify --quiet "refs/tags/fury-${{ steps.versions.outputs.synthesis }}"; then
+          if git rev-parse --verify --quiet "refs/tags/eduke32-${{ steps.versions.outputs.synthesis }}"; then
             echo "Tag already exists, we can exit early!"; echo "tag_exists=true" >> $GITHUB_OUTPUT
           else
             echo "Tag does not exist, let's get cracking!"; echo "tag_exists=false" >> $GITHUB_OUTPUT
