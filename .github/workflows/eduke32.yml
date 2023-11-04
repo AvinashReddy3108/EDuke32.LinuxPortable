@@ -94,5 +94,5 @@ jobs:
             Read the changelog: https://dukeworld.com/eduke32/synthesis/${{ steps.versions.outputs.synthesis }}/ChangeLog.txt
 
             # Notes
-            - The "startup screen"/GUI has been stripped out (flags: `STARTUP_WINDOW=0`, `HAVE_GTK2=0`) in favor of using shell scripts (_or maybe a third party launcher in the future?_) to launch the games. You will need to use the CLI for launching your games (see `./fury --help`).
+            - The "startup screen"/GUI has been stripped out (flags: `STARTUP_WINDOW=0`, `HAVE_GTK2=0`) in favor of using shell scripts (_or maybe a third party launcher in the future?_) to launch the games. You will need to use the CLI for launching your games (see `./eduke32 --help`).
           files: EDuke32.LinuxPortable_${{ steps.versions.outputs.synthesis }}.7z
