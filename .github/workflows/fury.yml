@@ -68,7 +68,7 @@ jobs:
         if: steps.check_tag.outputs.tag_exists == 'false'
         run: |
           make -j$(nproc --all) \
-              FURY=1 SDL_STATIC=0 USE_LIBVPX=1 \
+              FURY=1 \
               STARTUP_WINDOW=0 HAVE_GTK2=0
         shell: bash
           
