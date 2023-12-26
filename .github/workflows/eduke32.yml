@@ -1,4 +1,4 @@
-name: "EDuke32"
+name: "Build EDuke32"
 
 on:
   workflow_dispatch:
@@ -17,6 +17,7 @@ jobs:
         id: checkout
         uses: actions/checkout@v4
         with:
+          # We need this for the 'check_tag' step.
           fetch-depth: 0
 
       - name: 🔍 Determine latest EDuke32 "Synthesis" version
@@ -44,32 +45,11 @@ jobs:
           tar -xf 'eduke32_src.tar.xz' --strip-components=1 && rm 'eduke32_src.tar.xz'
         shell: bash
 
-      - name: ✏️ Add Ubuntu PPAs for some packages
-        if: steps.check_tag.outputs.tag_exists == 'false'
-        run: |
-          sudo add-apt-repository -y "deb http://archive.ubuntu.com/ubuntu $(lsb_release -sc) main universe restricted multiverse"
-          sudo apt update
-        shell: bash
-
-      - name: 🔧 Install dependencies
-        if: steps.check_tag.outputs.tag_exists == 'false'
-        run: |
-          sudo apt install -y build-essential \
-                              nasm \
-                              libgl1-mesa-dev \
-                              libsdl2-dev \
-                              flac libflac-dev \
-                              libvpx-dev \
-                              libgtk2.0-dev \
-                              freepats
-        shell: bash
-
       - name: 🏗️ Build
         if: steps.check_tag.outputs.tag_exists == 'false'
-        run: |
-          make -j$(nproc --all) \
-              STARTUP_WINDOW=0 HAVE_GTK2=0
-        shell: bash
+        uses: ./.github/actions/scout
+        with:
+          variant: EDUKE32
 
       - name: 📦️ Pack
         if: steps.check_tag.outputs.tag_exists == 'false'
@@ -78,7 +58,7 @@ jobs:
           for binary in eduke32 mapster32; do
             python3 -m staticx --strip "$binary" "${binary}_static"
             rm "$binary" && mv "${binary}_static" "$binary"
-            done
+          done
           7z a -t7z -m0=lzma -mx=9 -mfb=64 -md=32m -ms=on "EDuke32.LinuxPortable_${{ steps.versions.outputs.synthesis }}.7z" eduke32 mapster32
         shell: bash
 
@@ -89,7 +69,7 @@ jobs:
           tag_name: eduke32-${{ steps.versions.outputs.synthesis }}
           name: "EDuke32 | ${{ steps.versions.outputs.synthesis }}"
           body: |
-            ![eduke32](https://github.com/AvinashReddy3108/EDuke32.LinuxPortable/assets/27774996/9123536a-cfd2-40f5-97f8-cdbbfb15407a)
+            ![EDuke32](https://github.com/AvinashReddy3108/EDuke32.LinuxPortable/assets/27774996/9123536a-cfd2-40f5-97f8-cdbbfb15407a)
 
             Read the changelog: https://dukeworld.com/eduke32/synthesis/${{ steps.versions.outputs.synthesis }}/ChangeLog.txt
 

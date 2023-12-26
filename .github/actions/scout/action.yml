@@ -1,0 +1,11 @@
+name: 'Build EDuke32 inside Scout SDK'
+description: 'Builds EDuke32 inside the Scout (Steam Runtime v1) SDK Container'
+inputs:
+  variant:
+    description: 'What variant of EDuke32 do we want to build?'
+    required: true
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
+  args:
+    - ${{ inputs.variant }}
