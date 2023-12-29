@@ -47,18 +47,13 @@ jobs:
 
       - name: 🏗️ Build
         if: steps.check_tag.outputs.tag_exists == 'false'
-        uses: ./.github/actions/scout
+        uses: ./.github/actions/sniper
         with:
           variant: EDUKE32
 
       - name: 📦️ Pack
         if: steps.check_tag.outputs.tag_exists == 'false'
         run: |
-          pip3 install -U staticx
-          for binary in eduke32 mapster32; do
-            python3 -m staticx --strip "$binary" "${binary}_static"
-            rm "$binary" && mv "${binary}_static" "$binary"
-          done
           7z a -t7z -m0=lzma -mx=9 -mfb=64 -md=32m -ms=on "EDuke32.LinuxPortable_${{ steps.versions.outputs.synthesis }}.7z" eduke32 mapster32
         shell: bash
 
